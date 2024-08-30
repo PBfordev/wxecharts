@@ -1,0 +1,47 @@
+<!--
+///////////////////////////////////////////////////////////////////////////////
+// Project:     wxECharts
+// Home:        https://github.com/PBfordev/wxecharts
+// File Name:   chart.html
+// Purpose:     HTML for the chart
+// Author:      PB
+// Created:     2024-08-22
+// Copyright:   (c) 2024 PB
+// Licence:     wxWindows licence
+///////////////////////////////////////////////////////////////////////////////
+-->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ECharts</title>    
+    <script src="echarts.min.js"></script>
+    <script src="chartscripts.js"></script>  
+    <style>
+          body, html {
+              background-color: white;
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              overflow: hidden;
+              font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+              font-size: 11pt;
+          }
+          #chart {
+              width: 97vw;
+              height: 97vh;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+          }
+    </style>
+  </head>
+  <body >
+    <div id="chart"></div>    
+  </body>
+</html>

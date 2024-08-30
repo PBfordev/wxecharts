@@ -1,0 +1,14 @@
+///////////////////////////////////////////////////////////////////////////////
+// Project:     wxECharts
+// Home:        https://github.com/PBfordev/wxecharts
+// File Name:   wxECharts.rc
+// Purpose:     Windows resource file for wxECharts
+// Author:      PB
+// Created:     2024-08-22
+// Copyright:   (c) 2024 PB
+// Licence:     wxWindows licence
+///////////////////////////////////////////////////////////////////////////////
+
+#include "wx/msw/wx.rc"
+
+appIcon ICON "wx/msw/std.ico"
