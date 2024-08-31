@@ -21,7 +21,7 @@
 
 bool wxEChartsApp::OnInit()
 {
-    if (!wxApp::OnInit())
+    if ( !wxApp::OnInit() )
 	    return false;
 
 #if USING_WEBVIEW_EDGE

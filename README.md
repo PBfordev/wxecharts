@@ -4,15 +4,16 @@
 
 To the best of my knowledge, there isn't a single wxWidgets charting library that meets all the following criteria: (1) free with a permissive license, (2) a large user and knowledge base, (3) feature-rich and interactive, and (4) actively maintained. This is not surprising, as it appears that creating and maintaining such library is quite challenging if not outright impossible.
 
-On the other hand, there are JavaScript charting libraries that meet all four criteria, among else Plotly.js, Chart.js, or Apache ECharts. These libraries are also generally quite easy to use. wxWidgets provides a `wxWebView` control, which wraps a full web browser core, allowing these charting libraries to be used in a wxWidgets application.
+On the other hand, there are JavaScript charting libraries that meet all four criteria, such as Plotly.js, Chart.js, and Apache ECharts. wxWidgets provides a `wxWebView` control, which wraps a full web browser core, allowing these libraries to be used in a wxWidgets application.
 
-While using `wxWebView` and a JavaScript library in a native C++ application might seem crazy to some, and certainly has some disadvantages, it may still be a viable approach for others. The wxECharts project presents a simple example of how to do this using [Apache ECharts](https://echarts.apache.org). wxECharts does not provide a ready-to-use code for applications, it is not a JavaScript library wrapper for wxWidgets. Rather, it demonstrates how certain tasks can be approached. The actual implementation will depend on the charting library used and the application's requirements. wxECharts also shows how to access the native `wxWebView` backend, to customize it and display very handy DevTools.
+While using `wxWebView` and a JavaScript library in a native C++ application might seem crazy to some, and certainly has some disadvantages, it may still be a viable approach for others. The wxECharts project presents a simple example of doing this using [Apache ECharts](https://echarts.apache.org). wxECharts does not provide a ready-to-use code for applications, it is not a JavaScript library wrapper for wxWidgets. Rather, it demonstrates how certain tasks can be approached. The actual implementation will depend on the charting library used and the application's requirements. wxECharts also shows how to access the native `wxWebView` backend, to customize it and display very handy DevTools.
 
 ![wxECharts Screenshot](wxecharts-screenshot.gif?raw=true)
 
 ### wxECharts
 
 The project consists of several C++ header and source files, with `charthelper.cpp` being the most important one. It handles almost all direct communication between the chart and the C++ code. The project also includes chart assets (see the `chart-assets` folder), which consist of an HTML file for `wxWebView` (`chart.html`), a JavaScript file for two-way communication between the C++ and JavaScript code (`chartscripts.js`), and the charting library itself (`echarts.min.js`).
+Structured data is exchanged in JSON format when passing parameters from C++ to JavaScript or returning a result from JavaScript to C++.
 
 #### Main Objectives
 
@@ -36,9 +37,12 @@ JavaScript charting libraries usually also provide the chart rendered as PNG and
 
 #### Platforms
 
-Tested on Windows (10, 11) and (briefly) on Linux (Mint 22 Cinnamon). See BUILD.md for build instructions.
+Tested on Windows (10, 11) and briefly on Linux (Mint 22 Cinnamon). See [BUILD.md](BUILD.md) for build instructions.
 
-### Downsides of Using `wxWebView` for Charting
+### Pros of Using `wxWebView` for Charting
+Aside from meeting the four criteria mentioned earlier, popular JavaScript charting libraries are generally very easy to use and well-documented, with an active user community. Obviously, they also do not suffer from the bane of (some) C++ libraries, i.e., being difficult to build and add to the application project.
+
+### Cons of Using `wxWebView` for Charting
 
 Using `wxWebView` adds a large dependency to the application, increasing the application’s startup time and memory footprint. However, on modern systems, neither may be noticeable, let alone the deal-breaker. Another potential downside is sometimes not-so-seamless integration of `wxWebView` into the application; for an example, see the "Known Issues" section.
 

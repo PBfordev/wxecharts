@@ -53,7 +53,7 @@ wxEChartsMainFrame::wxEChartsMainFrame(wxWindow* parent, const wxString& chartAs
     menu->Append(ID_SHOW_DEVTOOLS,  _("Show &DevTools\tCtrl+D"));
     menu->AppendSeparator();
     menu->Append(wxID_SAVE, _("&Save chart as PNG...\tCtrl+S"));
-           
+
     SetMenuBar(new wxMenuBar());
     GetMenuBar()->Append(menu, _("&Chart"));
 

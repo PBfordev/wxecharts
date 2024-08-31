@@ -420,7 +420,7 @@ bool ChartHelper::ChartSaveAsImage(const int imageWidth, const wxString& fileNam
 
     wxFFile file(fileName, "wb");
 
-    if ( file.Write(buf.GetData(), buf.GetDataLen()) != buf.GetDataLen() )
+    if ( !file.IsOpened() || file.Write(buf.GetData(), buf.GetDataLen()) != buf.GetDataLen() )
         return false;
 
     return true;
