@@ -37,10 +37,13 @@ JavaScript charting libraries usually also provide the chart rendered as PNG and
 
 #### Platforms
 
-Tested on Windows (10, 11) and briefly on Linux (Mint 22 Cinnamon). See [BUILD.md](BUILD.md) for build instructions.
+Tested on Windows (10, 11) and briefly on Linux (Mint 22 Cinnamon). wxECharts does not support the hopelessly outdated Internet Explorer `wxWebView` backend. It also does not support the recently introduced `wxWebViewChromium`, since this backend does not allow obtaining result from `RunScript()` nor adding a script message handler.
+See [BUILD.md](BUILD.md) for build instructions.
 
 ### Pros of Using `wxWebView` for Charting
-Aside from meeting the four criteria mentioned earlier, popular JavaScript charting libraries are generally very easy to use and well-documented, with an active user community. Obviously, they also do not suffer from the bane of (some) C++ libraries, i.e., being difficult to build and add to the application project.
+Aside from meeting the four criteria mentioned earlier, popular JavaScript charting libraries are generally very easy to use and well-documented, with an active user community. 
+Moreover, their charts look very pretty and come with all the bells and whistles (such as animations on data change).
+Obviously, they also do not suffer from the bane of (some) C++ libraries, i.e., being difficult to build and add to the application project.
 
 ### Cons of Using `wxWebView` for Charting
 
