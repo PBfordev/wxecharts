@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Project:     wxECharts
 // Home:        https://github.com/PBfordev/wxecharts
-// File Name:   wxECharts.h
+// File Name:   wxecharts.h
 // Purpose:     Declaration of the application class
 // Author:      PB
 // Created:     2024-08-22

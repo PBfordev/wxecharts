@@ -70,7 +70,7 @@ private:
     void OnWebViewError(wxWebViewEvent&);
     void OnWebViewMessageReceived(wxWebViewEvent& evt);
 
-    void OnScriptChartError(const wxArrayString& params);
+    void OnScriptChartError(const wxArrayString& params, const wxString& msg);
     void OnScriptChartDoubleClick(const wxArrayString& params, const wxString& msg);
     void OnScriptChartContextMenu();
 };

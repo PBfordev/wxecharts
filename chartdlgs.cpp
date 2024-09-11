@@ -61,13 +61,8 @@ std::vector<wxColor> ChartColorsDlg::GetColors() const
     std::vector<wxColor> colors;
 
     colors.reserve(m_colorPickers.size());
-
     for ( const auto cp : m_colorPickers )
-    {
-        const wxColor color = cp->GetColour();
-        wxASSERT(color.IsOk());
-        colors.push_back(color);
-    }
+        colors.push_back(cp->GetColour());
 
     return colors;
 }
@@ -85,7 +80,7 @@ ChartSizingOptionsDlg::ChartSizingOptionsDlg(wxWindow* parent, const double widt
 {
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Width to Height Ratio")), 
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Width to Height Ratio")),
                    wxSizerFlags().Border(wxALL & ~wxBOTTOM));
     m_ratioCtrl = new wxSpinCtrlDouble(this, wxID_ANY, "",
                         wxDefaultPosition, wxDefaultSize,
@@ -93,7 +88,7 @@ ChartSizingOptionsDlg::ChartSizingOptionsDlg(wxWindow* parent, const double widt
                         0.3, 3.0, widthToHeightRatio, 0.1);
     m_ratioCtrl->SetDigits(1);
     mainSizer->Add(m_ratioCtrl, wxSizerFlags().Expand().Border());
- 
+
     mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Minimal Width")),
                    wxSizerFlags().Border(wxALL & ~wxBOTTOM));
     m_widthCtrl = new wxSpinCtrl(this, wxID_ANY, "",
@@ -139,13 +134,13 @@ ChartDataPropertiesDlg::ChartDataPropertiesDlg(wxWindow* parent,
 {
    wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Variable Name")), 
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Variable Name")),
                    wxSizerFlags().Border(wxALL & ~wxBOTTOM));
     wxTextCtrl* variableNameCtrl = new wxTextCtrl(this, wxID_ANY);
     variableNameCtrl->SetValidator(wxTextValidator(wxFILTER_EMPTY, &variableName));
     mainSizer->Add(variableNameCtrl, wxSizerFlags().Expand().Border());
 
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Series Name")), 
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Series Name")),
                    wxSizerFlags().Border(wxALL & ~wxBOTTOM));
     wxTextCtrl* seriesNameCtrl = new wxTextCtrl(this, wxID_ANY);
     seriesNameCtrl->SetValidator(wxTextValidator(wxFILTER_EMPTY, &seriesName));
@@ -158,7 +153,7 @@ ChartDataPropertiesDlg::ChartDataPropertiesDlg(wxWindow* parent,
     seriesTypeCtrl->SetValidator(wxGenericValidator(&seriesType));
     mainSizer->Add(seriesTypeCtrl, wxSizerFlags().Expand().Border());
 
-    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Value (read-only)")), 
+    mainSizer->Add(new wxStaticText(this, wxID_ANY, _("Value (read-only)")),
                    wxSizerFlags().Border(wxALL & ~wxBOTTOM));
     wxStaticText* valueCtrl = new wxStaticText(this, wxID_ANY, value);
     valueCtrl->SetBackgroundColour(*wxWHITE);

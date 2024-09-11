@@ -2,7 +2,7 @@
 // Project:     wxECharts
 // Home:        https://github.com/PBfordev/wxecharts
 // File Name:   charthelper.h
-// Purpose:     Implementation of helper class for chart
+// Purpose:     Implementation of helper class using Apache ECharts
 // Author:      PB
 // Created:     2024-08-22
 // Copyright:   (c) 2024 PB
@@ -24,7 +24,7 @@ class wxWebView;
 
 ChartHelper
 ---------------
-helper class for communication with Apache Echarts
+helper class for communication with Apache ECharts
 
 To create the chart:
 1. Add variable names.
@@ -89,7 +89,7 @@ public:
     bool ChartSetColors(const std::vector<wxColour>& colors);
 
     bool ChartGetSizingOptions(double& widthToHeightRatio, int& minWidth, int& minHeight);
-    bool ChartSetSizingOptions(const double* widthToHeightRatio, const int* minWidth, const int* minHeight);
+    bool ChartSetSizingOptions(const double widthToHeightRatio, const int minWidth, const int minHeight);
 
     // Obtains the chart rendered into a wxImage
     bool ChartGetAsImage(const int imageWidth, wxImage& image);
@@ -99,6 +99,8 @@ public:
     bool ChartGetAsImage(const int imageWidth, wxString& base64str);
     // Saves the chart as PNG
     bool ChartSaveAsImage(const int imageWidth, const wxString& fileName);
+
+    bool GetEChartsVersion(wxString& version);
 private:
     wxWebView* m_webView{nullptr};
     std::vector<wxString> m_variableNames;

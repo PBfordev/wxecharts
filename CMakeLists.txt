@@ -17,9 +17,6 @@ if(NOT(WIN32 OR LINUX))
 endif()
 
 find_package(wxWidgets 3.2 COMPONENTS webview core base REQUIRED)
-if(wxWidgets_USE_FILE)
-  include(${wxWidgets_USE_FILE})
-endif()
 
 if(WIN32)
   # Don't know how to tell in CMake if the target CPU is x64 or Arm64 (when crosscompiling)
@@ -68,8 +65,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE nlohmann)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${wxWidgets_LIBRARIES})
 
+if(wxWidgets_USE_FILE)
+  include(${wxWidgets_USE_FILE})
+endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE ${wxWidgets_LIBRARIES})
 if(MINGW) # work around the breaking change in wxWidgets 3.3
   target_link_libraries(${PROJECT_NAME} PRIVATE gdiplus msimg32)
 endif()

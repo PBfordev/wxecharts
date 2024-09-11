@@ -2,9 +2,9 @@
 
 ### Build requirements
 
-* wxWidgets 3.2.0 or newer built with support for `wxWebView`, on Windows with `wxWebViewEdge` [enabled](https://docs.wxwidgets.org/stable/classwx_web_view.html#wxWEBVIEW_BACKEND_EDGE).
-* CMake 3.24 or newer.
-* Apache ECharts and [JSON for Modern C++](https://json.nlohmann.me/), both are bundled with the project.
+* [wxWidgets](https://wxwidgets.org) 3.2 or newer built with support for `wxWebView`, on Windows with `wxWebViewEdge` [enabled](https://docs.wxwidgets.org/stable/classwx_web_view.html#wxWEBVIEW_BACKEND_EDGE).
+* [CMake](https://cmake.org) 3.24 or newer.
+* [Apache ECharts](https://echarts.apache.org) and [JSON for Modern C++](https://json.nlohmann.me), both are bundled with the project.
 
 ### How to Build
 

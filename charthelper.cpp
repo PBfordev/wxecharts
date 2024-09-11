@@ -2,7 +2,7 @@
 // Project:     wxECharts
 // Home:        https://github.com/PBfordev/wxecharts
 // File Name:   charthelper.cpp
-// Purpose:     Implementation of helper class using Apache Echarts
+// Purpose:     Implementation of helper class using Apache ECharts
 // Author:      PB
 // Created:     2024-08-22
 // Copyright:   (c) 2024 PB
@@ -18,12 +18,13 @@
 
 #include <utility>
 
-#include "nlohmann/json.hpp"
-using json = nlohmann::ordered_json;
+#include <json.hpp>
 
 #include "charthelper.h"
 
 using namespace std;
+
+using json = nlohmann::ordered_json;
 
 ChartHelper::ChartHelper()
 {}
@@ -177,7 +178,7 @@ bool ChartHelper::SetSeriesData(const size_t seriesIdx, const std::vector<double
 bool ChartHelper::ChartCreate()
 {
     wxCHECK(m_webView, false);
-    return m_webView->RunScript("WXChartCreateChart('chart');");
+    return m_webView->RunScript("wxEChartsCreateChart('chart');");
 }
 
 bool ChartHelper::ChartUpdateSeries()
@@ -207,7 +208,7 @@ bool ChartHelper::ChartUpdateSeries()
         json j;
 
         j["series"] = allSeriesJSON;
-        script.Printf("WXChartUpdateSeries('%s');", j.dump());
+        script.Printf("wxEChartsUpdateSeries('%s');", j.dump());
     }
     catch (const json::exception& e)
     {
@@ -231,7 +232,7 @@ bool ChartHelper::ChartUpdateVariableNames()
 
         for ( const auto& n : m_variableNames )
             j.push_back(n.utf8_string());
-        script.Printf("WXChartUpdateVariableNames('%s');", j.dump());
+        script.Printf("wxEChartsUpdateVariableNames('%s');", j.dump());
     }
     catch (const json::exception& e)
     {
@@ -248,7 +249,7 @@ bool ChartHelper::ChartGetColors(std::vector<wxColour>& colors)
 
     wxString script, result;
 
-    if( m_webView->RunScript("WXChartGetChartColors();", &result) )
+    if( m_webView->RunScript("wxEChartsGetChartColors();", &result) )
     {
         try
         {
@@ -290,10 +291,9 @@ bool ChartHelper::ChartSetColors(const std::vector<wxColour>& colors)
 
         for ( const auto& c : colors )
         {
-            wxCHECK(c.IsOk(), false);
             j.push_back(c.GetAsString(wxC2S_HTML_SYNTAX).utf8_string());
         }
-        script.Printf("WXChartSetChartColors('%s')", j.dump());
+        script.Printf("wxEChartsSetChartColors('%s')", j.dump());
     }
     catch (const json::exception& e)
     {
@@ -309,7 +309,7 @@ bool ChartHelper::ChartGetSizingOptions(double& widthToHeightRatio, int& minWidt
     wxCHECK(m_webView, false);
     wxString script, result;
 
-    if ( m_webView->RunScript("WXChartGetChartSizingOptions();", &result) )
+    if ( m_webView->RunScript("wxEChartsGetChartSizingOptions();", &result) )
     {
         try
         {
@@ -330,10 +330,9 @@ bool ChartHelper::ChartGetSizingOptions(double& widthToHeightRatio, int& minWidt
 }
 
 
-bool ChartHelper::ChartSetSizingOptions(const double* widthToHeightRatio, const int* minWidth, const int* minHeight)
+bool ChartHelper::ChartSetSizingOptions(const double widthToHeightRatio, const int minWidth, const int minHeight)
 {
     wxCHECK(m_webView, false);
-    wxCHECK(widthToHeightRatio || minWidth || minHeight, false);
 
     wxString script;
 
@@ -341,13 +340,10 @@ bool ChartHelper::ChartSetSizingOptions(const double* widthToHeightRatio, const 
     {
         json j;
 
-        if ( widthToHeightRatio )
-            j["widthToHeightRatio"] = *widthToHeightRatio;
-        if ( minWidth )
-            j["minWidth"] = *minWidth;
-        if ( minHeight )
-            j["minHeight"] = *minHeight;
-        script.Printf("WXChartSetChartSizingOptions('%s');", j.dump());
+        j["widthToHeightRatio"] = widthToHeightRatio;
+        j["minWidth"] = minWidth;
+        j["minHeight"] = minHeight;
+        script.Printf("wxEChartsSetChartSizingOptions('%s');", j.dump());
     }
     catch (const json::exception& e)
     {
@@ -394,7 +390,7 @@ bool ChartHelper::ChartGetAsImage(const int imageWidth, wxString& base64str)
     wxString script;
     wxString result;
 
-    script.Printf("WXChartSaveChartAsImage(%d);", imageWidth);
+    script.Printf("wxEChartsSaveChartAsImage(%d);", imageWidth);
 
     if ( !m_webView->RunScript(script, &result) )
         return false;
@@ -424,4 +420,17 @@ bool ChartHelper::ChartSaveAsImage(const int imageWidth, const wxString& fileNam
         return false;
 
     return true;
+}
+
+bool ChartHelper::GetEChartsVersion(wxString& version)
+{
+    wxString result;
+
+    if ( m_webView->RunScript("wxEChartsGetEChartsVersion();", &result) )
+    {
+        version = move(result);
+        return true;
+    }
+
+    return false;
 }

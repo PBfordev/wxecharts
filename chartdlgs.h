@@ -69,7 +69,7 @@ show the color and value of a doubleclicked data point
 class ChartDataPropertiesDlg : public wxDialog
 {
 public:
-    ChartDataPropertiesDlg(wxWindow* parent, 
+    ChartDataPropertiesDlg(wxWindow* parent,
                    wxString& variableName, wxString& seriesName, int& seriesType,
                    const wxString& value, const wxColour& color);
 };

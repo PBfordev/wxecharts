@@ -12,8 +12,8 @@ While using `wxWebView` and a JavaScript library in a native C++ application mig
 
 ### wxECharts
 
-The project consists of several C++ header and source files, with `charthelper.cpp` being the most important one. It handles almost all direct communication between the chart and the C++ code. The project also includes chart assets (see the `chart-assets` folder), which consist of an HTML file for `wxWebView` (`chart.html`), a JavaScript file for two-way communication between the C++ and JavaScript code (`chartscripts.js`), and the charting library itself (`echarts.min.js`).
-Structured data is exchanged in JSON format when passing parameters from C++ to JavaScript or returning a result from JavaScript to C++.
+The project consists of several C++ header and source files, with `charthelper.cpp` being the most important one. It handles almost all direct communication between the chart and the C++ code. The project also includes chart assets (see the `chart-assets` folder), which consist of an HTML file for `wxWebView` (`wxecharts.html`), a JavaScript file for two-way communication between the C++ and JavaScript code (`wxecharts.js`), and the charting library itself (`echarts.min.js`).
+Structured data is exchanged between C++ and JavaScript in the JSON format (using [JSON for Modern C++](https://json.nlohmann.me) library).
 
 #### Main Objectives
 

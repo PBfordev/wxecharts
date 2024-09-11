@@ -1,7 +1,7 @@
 ﻿///////////////////////////////////////////////////////////////////////////////
 // Project:     wxECharts
 // Home:        https://github.com/PBfordev/wxecharts
-// File Name:   wxECharts.cpp
+// File Name:   wxecharts.cpp
 // Purpose:     Implementation of the application class
 // Author:      PB
 // Created:     2024-08-22
@@ -71,7 +71,7 @@ int wxEChartsApp::OnExit()
 wxString wxEChartsApp::GetChartAssetsFolder()
 {
     static constexpr const char* chartAssets[] =
-        {"chartscripts.js", "chart.html", "echarts.min.js", };
+        {"wxecharts.html", "wxecharts.js", "echarts.min.js", };
     static constexpr auto assetsFolderName = "chart-assets";
     static constexpr auto configKeyName = "ChartAssetsFolder";
 
@@ -91,18 +91,21 @@ wxString wxEChartsApp::GetChartAssetsFolder()
         return true;
     };
 
-    // first try the path stored in the config,
-    // then the standard data dir
-    if ( !config->Read(configKeyName, &folder) )
+    // first try the path stored in the config, if any
+    if ( config->Read(configKeyName, &folder) )
     {
-        fn.AssignDir(standardPaths.GetDataDir());
-        fn.AppendDir(assetsFolderName);
-        folder = fn.GetPath();
+        if ( HasChartAssets(folder) )
+            return folder;
     }
+
+    // the standard data dir
+    fn.AssignDir(standardPaths.GetDataDir());
+    fn.AppendDir(assetsFolderName);
+    folder = fn.GetPath();
     if ( HasChartAssets(folder) )
         return folder;
 
-    // try the folder with the executable
+    // the folder with the executable
     fn.Assign(standardPaths.GetExecutablePath());
     fn.AppendDir(assetsFolderName);
     folder = fn.GetPath();
@@ -118,26 +121,26 @@ wxString wxEChartsApp::GetChartAssetsFolder()
             return folder;
     }
 
-    // Finally, ask the user
+    // could not find, ask the user
     for ( ;; )
     {
         wxFileDialog dlg(nullptr, _("Select the folder with chart assets"), "", chartAssets[0],
-                         _("JavaScript Files (*.js)|*.js"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+                         _("HTML Files (*.html)|*.html"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
         if ( dlg.ShowModal() != wxID_OK )
-            return wxEmptyString;
+            break;
 
         fn.Assign(dlg.GetPath());
         folder = fn.GetPath();
         if ( HasChartAssets(folder) )
         {
             config->Write(configKeyName, folder);
-            break;
+            return folder;
         }
     }
 
     // assets folder undetermined
-    return folder;
+    return wxEmptyString;
 }
 
 wxIMPLEMENT_APP(wxEChartsApp);
