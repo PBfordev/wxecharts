@@ -208,7 +208,7 @@ bool ChartHelper::ChartUpdateSeries()
         json j;
 
         j["series"] = allSeriesJSON;
-        script.Printf("wxEChartsUpdateSeries('%s');", j.dump());
+        script.Printf("wxEChartsUpdateSeries('%s');", wxString::FromUTF8(j.dump()));
     }
     catch (const json::exception& e)
     {
@@ -232,7 +232,7 @@ bool ChartHelper::ChartUpdateVariableNames()
 
         for ( const auto& n : m_variableNames )
             j.push_back(n.utf8_string());
-        script.Printf("wxEChartsUpdateVariableNames('%s');", j.dump());
+        script.Printf("wxEChartsUpdateVariableNames('%s');", wxString::FromUTF8(j.dump()));
     }
     catch (const json::exception& e)
     {
