@@ -315,9 +315,9 @@ bool ChartHelper::ChartGetSizingOptions(double& widthToHeightRatio, int& minWidt
         {
             const json j = json::parse(string(result.utf8_string()));
 
-            widthToHeightRatio = j["widthToHeightRatio"].get<double>();
-            minWidth = j["minWidth"].get<int>();
-            minHeight = j["minHeight"].get<int>();
+            widthToHeightRatio = j.at("widthToHeightRatio").get<double>();
+            minWidth = j.at("minWidth").get<int>();
+            minHeight = j.at("minHeight").get<int>();
             return true;
         }
         catch (const json::exception& e)

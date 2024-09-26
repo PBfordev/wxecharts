@@ -446,14 +446,15 @@ void wxEChartsMainFrame::OnScriptChartDoubleClick(const wxArrayString& params, c
         if ( params[0] == "yAxis" )
         {
            wxLogMessage("yAxis doubleclicked: axis index = %d, target = %s",
-                         j["yAxisIndex"].get<int>(), wxString::FromUTF8((j["targetType"].get<string>())));
+                         j.at("yAxisIndex").get<int>(), 
+                         wxString::FromUTF8((j.at("targetType").get<string>())));
         }
         else if ( params[0] == "series" )
         {
-            const size_t variableIdx = j["dataIndex"].get<size_t>();
-            const size_t seriesIdx = j["seriesIndex"].get<size_t>();
-            const wxString value = wxString::Format("%g", j["value"].get<double>());
-            const wxColor color = wxColor(wxString::FromUTF8(j["color"].get<string>()));
+            const size_t variableIdx = j.at("dataIndex").get<size_t>();
+            const size_t seriesIdx = j.at("seriesIndex").get<size_t>();
+            const wxString value = wxString::Format("%g", j.at("value").get<double>());
+            const wxColor color = wxColor(wxString::FromUTF8(j.at("color").get<string>()));
             ChartHelper::ValueSeries series;
             wxString variableName;
             wxString seriesName;
