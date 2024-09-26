@@ -385,33 +385,33 @@ void wxEChartsMainFrame::OnWebViewMessageReceived(wxWebViewEvent& evt)
     if ( evt.GetString().StartsWith("wxECharts::", &msg) )
     {
         constexpr char msgFieldDelimiter = '\t';
-        const wxArrayString msgFields = wxStringTokenize(msg, msgFieldDelimiter);
+        wxArrayString msgFields = wxStringTokenize(msg, msgFieldDelimiter);
 
         if ( msgFields.size() < 2 )
         {
-            wxLogError(_("Invalid wxECharts message: '%s'"), msg);
+            wxLogError(_("Invalid wxECharts message: '%s'."), msg);
             return;
         }
 
-        wxArrayString params(msgFields);
+        const wxString msgType = msgFields[0];
 
-        params.erase(params.begin()); // remove the "wxECharts::" item
+        msgFields.erase(msgFields.begin()); // remove the message type item
 
-        if ( msgFields[0] == "error" )
+        if ( msgType == "error" )
         {
-            OnScriptChartError(params, msg);
+            OnScriptChartError(msgFields, msg);
         }
-        else if ( msgFields[0] == "dblclick" )
+        else if ( msgType == "dblclick" )
         {
-            OnScriptChartDoubleClick(params, msg);
+            OnScriptChartDoubleClick(msgFields, msg);
         }
-        else if ( msgFields[0] == "contextmenu" )
+        else if ( msgType == "contextmenu" )
         {
             OnScriptChartContextMenu();
         }
         else
         {
-            wxLogMessage(_("Unexpected wxECharts message: '%s'"), msg);
+            wxLogMessage(_("Unknown wxECharts message type '%s' ('%s')."), msgType, msg);
         }
     }
 }
@@ -446,7 +446,7 @@ void wxEChartsMainFrame::OnScriptChartDoubleClick(const wxArrayString& params, c
         if ( params[0] == "yAxis" )
         {
            wxLogMessage("yAxis doubleclicked: axis index = %d, target = %s",
-                         j.at("yAxisIndex").get<int>(), 
+                         j.at("yAxisIndex").get<int>(),
                          wxString::FromUTF8((j.at("targetType").get<string>())));
         }
         else if ( params[0] == "series" )
