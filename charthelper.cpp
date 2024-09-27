@@ -11,9 +11,6 @@
 
 
 #include <wx/wx.h>
-#include <wx/base64.h>
-#include <wx/ffile.h>
-#include <wx/mstream.h>
 #include <wx/webview.h>
 
 #include <utility>
@@ -175,22 +172,22 @@ bool ChartHelper::SetSeriesData(const size_t seriesIdx, const std::vector<double
     return true;
 }
 
-bool ChartHelper::ChartCreate()
+void ChartHelper::RunChartCreate()
 {
-    wxCHECK(m_webView, false);
-    return m_webView->RunScript("wxEChartsCreateChart('chart');");
+    wxCHECK_RET(m_webView, "m_webView is null");
+    m_webView->RunScriptAsync("wxEChartsCreateChart('chart');", (void*)CreateChart);
 }
 
-bool ChartHelper::ChartUpdateSeries()
+void ChartHelper::RunChartUpdateSeries()
 {
-    wxCHECK(m_webView, false);
-    wxCHECK(!m_series.empty(), false);
+    wxCHECK_RET(m_webView, "m_webView is null");
+    wxCHECK_RET(!m_series.empty(), "m_series is empty");
 
     wxString script;
 
     try
     {
-        std::vector<json> allSeriesJSON;
+        vector<json> allSeriesJSON;
 
         for ( const auto& s : m_series )
         {
@@ -212,17 +209,17 @@ bool ChartHelper::ChartUpdateSeries()
     }
     catch (const json::exception& e)
     {
-        wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
-        return false;
+        wxLogError(_("JSON error in %s (%s)."), __FUNCTION__, e.what());
+        return;
     }
 
-    return m_webView->RunScript(script);
+    m_webView->RunScriptAsync(script, (void*)UpdateSeries);
 }
 
-bool ChartHelper::ChartUpdateVariableNames()
+void ChartHelper::RunChartUpdateVariableNames()
 {
-    wxCHECK(m_webView, false);
-    wxCHECK(!m_variableNames.empty(), false);
+    wxCHECK_RET(m_webView, "m_webView is null");
+    wxCHECK_RET(!m_variableNames.empty(), "m_variableNames is empty");
 
     wxString script;
 
@@ -236,52 +233,22 @@ bool ChartHelper::ChartUpdateVariableNames()
     }
     catch (const json::exception& e)
     {
-        wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
-        return false;
+        wxLogError(_("JSON error in %s (%s)."), __FUNCTION__, e.what());
+        return;
     }
 
-    return m_webView->RunScript(script);
+    m_webView->RunScriptAsync(script, (void*)UpdateVariableNames);
 }
 
-bool ChartHelper::ChartGetColors(std::vector<wxColour>& colors)
+void ChartHelper::RunChartGetColors()
 {
-    wxCHECK(m_webView, false);
-
-    wxString script, result;
-
-    if( m_webView->RunScript("wxEChartsGetChartColors();", &result) )
-    {
-        try
-        {
-            const json j = json::parse(string(result.utf8_string()));
-
-            wxCHECK(j.is_array(), false);
-
-            std::vector<wxColor> tmpColors;
-
-            for ( const auto& e : j )
-            {
-                wxColour color(wxString::FromUTF8(e.get<std::string>()));
-
-                wxCHECK(color.IsOk(), false);
-                tmpColors.push_back(color);
-            }
-
-            colors = move(tmpColors);
-            return true;
-        }
-        catch (const json::exception& e)
-        {
-            wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
-        }
-    }
-
-    return false;
+    wxCHECK_RET(m_webView, "m_webView is null");    
+    m_webView->RunScriptAsync("wxEChartsGetChartColors();", (void*)GetColors);
 }
 
-bool ChartHelper::ChartSetColors(const std::vector<wxColour>& colors)
+void ChartHelper::RunChartSetColors(const std::vector<wxColour>& colors)
 {
-    wxCHECK(m_webView, false);
+    wxCHECK_RET(m_webView, "m_webView is null");
 
     wxString script;
 
@@ -297,42 +264,25 @@ bool ChartHelper::ChartSetColors(const std::vector<wxColour>& colors)
     }
     catch (const json::exception& e)
     {
-        wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
-        return false;
+        wxLogError(_("JSON error in %s (%s)."), __FUNCTION__, e.what());
+        return;
     }
 
-    return m_webView->RunScript(script);
+    m_webView->RunScriptAsync(script, (void*)SetColors);
 }
 
-bool ChartHelper::ChartGetSizingOptions(double& widthToHeightRatio, int& minWidth, int& minHeight)
+void ChartHelper::RunChartGetSizingOptions()
 {
-    wxCHECK(m_webView, false);
-    wxString script, result;
+    wxCHECK_RET(m_webView, "m_webView is null");
+    wxString script;
 
-    if ( m_webView->RunScript("wxEChartsGetChartSizingOptions();", &result) )
-    {
-        try
-        {
-            const json j = json::parse(string(result.utf8_string()));
-
-            widthToHeightRatio = j.at("widthToHeightRatio").get<double>();
-            minWidth = j.at("minWidth").get<int>();
-            minHeight = j.at("minHeight").get<int>();
-            return true;
-        }
-        catch (const json::exception& e)
-        {
-            wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
-        }
-    }
-
-    return false;
+    m_webView->RunScriptAsync("wxEChartsGetChartSizingOptions();", (void*)GetSizingOptions);
 }
 
 
-bool ChartHelper::ChartSetSizingOptions(const double widthToHeightRatio, const int minWidth, const int minHeight)
+void ChartHelper::RunChartSetSizingOptions(const double widthToHeightRatio, const int minWidth, const int minHeight)
 {
-    wxCHECK(m_webView, false);
+    wxCHECK_RET(m_webView, "m_webView is null");
 
     wxString script;
 
@@ -347,90 +297,83 @@ bool ChartHelper::ChartSetSizingOptions(const double widthToHeightRatio, const i
     }
     catch (const json::exception& e)
     {
+        wxLogError(_("JSON error in %s (%s)."), __FUNCTION__, e.what());
+        return;
+    }
+
+    m_webView->RunScriptAsync(script, (void*)SetSizingOptions);
+}
+
+
+void ChartHelper::RunChartGetPNG(const int imageWidth)
+{
+    wxCHECK_RET(m_webView, "m_webView is null");
+
+    wxString script;
+
+    script.Printf("wxEChartsSaveChartAsImage(%d);", imageWidth);
+    m_webView->RunScriptAsync(script, (void*)GetPNG);
+}
+
+
+void ChartHelper::RunChartGetEChartsVersion()
+{
+    wxCHECK_RET(m_webView, "m_webView is null");
+
+    m_webView->RunScriptAsync("wxEChartsGetEChartsVersion();", (void*)GetEChartsVersion);
+}
+
+bool ChartHelper::JSONToColors(const wxString& JSONStr, std::vector<wxColour>& colors)
+{
+    try
+    {
+        const json j = json::parse(string(JSONStr.utf8_string()));
+
+        if  ( !j.is_array() )
+        {
+            wxLogError(_("Invalid JSON colors string in %s."), __FUNCTION__);
+            return false;
+        }
+
+        vector<wxColor> tmpColors;
+
+        for ( const auto& e : j )
+        {
+            wxColour color(wxString::FromUTF8(e.get<string>()));
+
+            if ( !color.IsOk() )
+            {
+                wxLogError(_("Invalid JSON color in %s."), __FUNCTION__);
+                return false;
+            }
+            tmpColors.emplace_back(move(color));
+        }
+        colors = move(tmpColors);
+    }
+    catch (const json::exception& e)
+    {
         wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
         return false;
     }
 
-    return m_webView->RunScript(script);
-}
-
-bool ChartHelper::ChartGetAsImage(const int imageWidth, wxImage& image)
-{
-    wxMemoryBuffer buf;
-
-    if ( !ChartGetAsImage(imageWidth, buf) )
-        return false;
-
-    wxMemoryInputStream stream(buf.GetData(), buf.GetDataLen());
-
-    return image.LoadFile(stream);
-}
-
-bool ChartHelper::ChartGetAsImage(const int imageWidth, wxMemoryBuffer& data)
-{
-    wxString base64str;
-
-    if ( !ChartGetAsImage(imageWidth, base64str) )
-        return false;
-
-    data = wxBase64Decode(base64str);
-    if ( data.IsEmpty() )
-    {
-        wxLogError(_("Could not decode the chart data URL."));
-        return false;
-    }
-
     return true;
 }
 
-bool ChartHelper::ChartGetAsImage(const int imageWidth, wxString& base64str)
+bool ChartHelper::JSONToSizingOptions(const wxString& JSONStr, double& widthToHeightRatio,
+                                      int& minWidth, int& minHeight)
 {
-    wxCHECK(m_webView, false);
-
-    wxString script;
-    wxString result;
-
-    script.Printf("wxEChartsSaveChartAsImage(%d);", imageWidth);
-
-    if ( !m_webView->RunScript(script, &result) )
-        return false;
-
-    wxString str;
-
-    if ( !result.StartsWith("data:image/png;base64,", &str) )
+    try
     {
-        wxLogError(_("Invalid chart data URL."));
+        const json j = json::parse(string(JSONStr.utf8_string()));
+
+        widthToHeightRatio = j.at("widthToHeightRatio").get<double>();
+        minWidth = j.at("minWidth").get<int>();
+        minHeight = j.at("minHeight").get<int>();
+    }
+    catch (const json::exception& e)
+    {
+        wxLogError(_("JSON parsing error in %s (%s)."), __FUNCTION__, e.what());
         return false;
     }
-
-    base64str = move(str);
     return true;
-}
-
-bool ChartHelper::ChartSaveAsImage(const int imageWidth, const wxString& fileName)
-{
-    wxMemoryBuffer buf;
-
-    if ( !ChartGetAsImage(imageWidth, buf) )
-        return false;
-
-    wxFFile file(fileName, "wb");
-
-    if ( !file.IsOpened() || file.Write(buf.GetData(), buf.GetDataLen()) != buf.GetDataLen() )
-        return false;
-
-    return true;
-}
-
-bool ChartHelper::GetEChartsVersion(wxString& version)
-{
-    wxString result;
-
-    if ( m_webView->RunScript("wxEChartsGetEChartsVersion();", &result) )
-    {
-        version = move(result);
-        return true;
-    }
-
-    return false;
 }

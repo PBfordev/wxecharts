@@ -42,6 +42,24 @@ the changes in the chart itself.
 class ChartHelper final
 {
 public:
+    enum ScriptResult
+    {
+        CreateChart,
+
+        UpdateSeries,
+        UpdateVariableNames,
+
+        GetColors,
+        SetColors,
+
+        GetSizingOptions,
+        SetSizingOptions,
+
+        GetPNG,
+
+        GetEChartsVersion,
+    };
+
     enum SeriesType
     {
         Bar,
@@ -80,27 +98,24 @@ public:
     bool GetSeriesData(const size_t seriesIdx, std::vector<double>& data) const;
     bool SetSeriesData(const size_t seriesIdx, const std::vector<double>& data);
 
-    bool ChartCreate();
+    void RunChartCreate();
 
-    bool ChartUpdateSeries();
-    bool ChartUpdateVariableNames();
+    void RunChartUpdateSeries();
+    void RunChartUpdateVariableNames();
 
-    bool ChartGetColors(std::vector<wxColour>& colors);
-    bool ChartSetColors(const std::vector<wxColour>& colors);
+    void RunChartGetColors();
+    void RunChartSetColors(const std::vector<wxColour>& colors);
 
-    bool ChartGetSizingOptions(double& widthToHeightRatio, int& minWidth, int& minHeight);
-    bool ChartSetSizingOptions(const double widthToHeightRatio, const int minWidth, const int minHeight);
+    void RunChartGetSizingOptions();
+    void RunChartSetSizingOptions(const double widthToHeightRatio, const int minWidth, const int minHeight);
 
-    // Obtains the chart rendered into a wxImage
-    bool ChartGetAsImage(const int imageWidth, wxImage& image);
-    // Obtains the chart rendered into a PNG
-    bool ChartGetAsImage(const int imageWidth, wxMemoryBuffer& data);
-    // Obtains the chart rendered into a PNG as a Base64-encoded string
-    bool ChartGetAsImage(const int imageWidth, wxString& base64str);
-    // Saves the chart as PNG
-    bool ChartSaveAsImage(const int imageWidth, const wxString& fileName);
+    void RunChartGetPNG(const int imageWidth);
 
-    bool GetEChartsVersion(wxString& version);
+    void RunChartGetEChartsVersion();
+
+    static bool JSONToColors(const wxString& JSONStr, std::vector<wxColour>& colors);
+    static bool JSONToSizingOptions(const wxString& JSONStr, double& widthToHeightRatio,
+                                    int& minWidth, int& minHeight);
 private:
     wxWebView* m_webView{nullptr};
     std::vector<wxString> m_variableNames;

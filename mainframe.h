@@ -68,9 +68,15 @@ private:
 
     void OnWebViewPageLoaded(wxWebViewEvent&);
     void OnWebViewError(wxWebViewEvent&);
+    void OnWebViewScriptResult(wxWebViewEvent&);
     void OnWebViewMessageReceived(wxWebViewEvent& evt);
 
-    void OnScriptChartError(const wxArrayString& params, const wxString& msg);
-    void OnScriptChartDoubleClick(const wxArrayString& params, const wxString& msg);
-    void OnScriptChartContextMenu();
+    void ChartChangeColors(const wxString& colorsJSONStr);
+    void ChartChangeSizingOptions(const wxString& sizingOptionsJSONStr);
+    void ChartSavePNG(const wxString& PNGAsBase64Str);
+    void ChartShowVersion(const wxString& version);
+
+    void OnMessageChartError(const wxArrayString& params, const wxString& msg);
+    void OnMessageChartDoubleClick(const wxArrayString& params, const wxString& msg);
+    void OnMessageChartContextMenu();
 };

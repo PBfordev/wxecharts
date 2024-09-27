@@ -10,14 +10,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <wx/wx.h>
+#include <wx/base64.h>
+#include <wx/ffile.h>
 #include <wx/filename.h>
 #include <wx/grid.h>
+#include <wx/mstream.h>
 #include <wx/numdlg.h>
 #include <wx/splitter.h>
 #include <wx/statline.h>
 #include <wx/stdpaths.h>
 #include <wx/tokenzr.h>
 #include <wx/webview.h>
+
 
 #ifdef __WXMSW__
     #include <wx/msw/private/comptr.h>
@@ -59,13 +63,13 @@ wxEChartsMainFrame::wxEChartsMainFrame(wxWindow* parent, const wxString& chartAs
     GetMenuBar()->Append(menu, _("&Chart"));
 
     Bind(wxEVT_MENU, &wxEChartsMainFrame::OnChartColors, this, ID_CHART_COLORS);
-    Bind(wxEVT_MENU, &wxEChartsMainFrame::OnChartSizingOptions, this, ID_CHART_SIZING_OPTIONS);    
+    Bind(wxEVT_MENU, &wxEChartsMainFrame::OnChartSizingOptions, this, ID_CHART_SIZING_OPTIONS);
     Bind(wxEVT_MENU, &wxEChartsMainFrame::OnChartSave, this, wxID_SAVE);
     Bind(wxEVT_MENU, &wxEChartsMainFrame::OnShowDevTools, this, ID_SHOW_DEVTOOLS);
 
     InitChartData();
 
-    wxSplitterWindow* mainSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 
+    wxSplitterWindow* mainSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                             wxSP_BORDER | wxSP_LIVE_UPDATE);
     wxSplitterWindow* topSplitter = new wxSplitterWindow(mainSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                             wxSP_BORDER | wxSP_LIVE_UPDATE);
@@ -169,6 +173,7 @@ void wxEChartsMainFrame::CreateWebView(wxWindow* parent, const wxString& assetsF
     m_webView->EnableContextMenu(false);
     m_webView->EnableHistory(false);
 
+    m_webView->Bind(wxEVT_WEBVIEW_SCRIPT_RESULT, &wxEChartsMainFrame::OnWebViewScriptResult, this);
     if ( m_webView->AddScriptMessageHandler("wxmsg") )
         m_webView->Bind(wxEVT_WEBVIEW_SCRIPT_MESSAGE_RECEIVED, &wxEChartsMainFrame::OnWebViewMessageReceived, this);
     else
@@ -241,46 +246,24 @@ void wxEChartsMainFrame::OnGridCellChanged(wxGridEvent& e)
     const wxString sVal = m_grid->GetCellValue(row, col);
 
     vector<double> data;
-    double dVal;
 
     if ( m_chartHelper.GetSeriesData(col, data) )
     {
-        sVal.ToDouble(&dVal);
-        data[row] = dVal;
+        sVal.ToDouble(&data[row]);
         m_chartHelper.SetSeriesData(col, data);
-        m_chartHelper.ChartUpdateSeries();
+        m_chartHelper.RunChartUpdateSeries();
     }
 }
 
 void wxEChartsMainFrame::OnChartColors(wxCommandEvent&)
 {
-    vector<wxColour> colors;
-
-    if ( !m_chartHelper.ChartGetColors(colors) )
-        return;
-
-    ChartColorsDlg dlg(this, colors);
-
-    if ( dlg.ShowModal() == wxID_OK )
-        m_chartHelper.ChartSetColors(dlg.GetColors());
+    m_chartHelper.RunChartGetColors();
 }
 
 
 void wxEChartsMainFrame::OnChartSizingOptions(wxCommandEvent&)
 {
-    double widthToHeightRatio;
-    int minWidth, minHeight;
-
-    if ( !m_chartHelper.ChartGetSizingOptions(widthToHeightRatio, minWidth, minHeight) )
-        return;
-
-    ChartSizingOptionsDlg dlg(this, widthToHeightRatio, minWidth, minHeight);
-
-    if ( dlg.ShowModal() == wxID_OK )
-    {
-        dlg.GetSizingOptions(widthToHeightRatio, minWidth, minHeight);
-        m_chartHelper.ChartSetSizingOptions(widthToHeightRatio, minWidth, minHeight);
-    }
+    m_chartHelper.RunChartGetSizingOptions();
 }
 
 void wxEChartsMainFrame::OnChartSave(wxCommandEvent&)
@@ -289,14 +272,8 @@ void wxEChartsMainFrame::OnChartSave(wxCommandEvent&)
                              _("Width"), _("Save chart"),
                              1000, 400, 4000, this);
 
-    if ( chartWidth == -1 )
-        return;
-
-    const wxString fileName = wxFileSelector(_("Select file name for chart image"), "", "chart", "",
-                                _("PNG files (*.png)|*.png"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
-
-    if ( !fileName.empty() )
-        m_chartHelper.ChartSaveAsImage(chartWidth, fileName);
+    if ( chartWidth != -1 )
+        m_chartHelper.RunChartGetPNG(chartWidth);;
 }
 
 void wxEChartsMainFrame::OnShowDevTools(wxCommandEvent&)
@@ -354,25 +331,85 @@ void wxEChartsMainFrame::OnWebViewPageLoaded(wxWebViewEvent&)
     ConfigureWebView();
 
     m_chartHelper.SetWebView(m_webView);
+    m_chartHelper.RunChartGetEChartsVersion();
 
-    wxString version;
-
-    if ( m_chartHelper.GetEChartsVersion(version) )
-        wxLogMessage(_("Using Apache ECharts v%s."), version);
-    else
-        wxLogError(_("Could not determine Apache ECharts version."));
-
-    if ( m_chartHelper.ChartCreate() )
-    {
-        m_chartHelper.ChartUpdateVariableNames();
-        m_chartHelper.ChartUpdateSeries();
-    }
+    m_chartHelper.RunChartCreate();
+    m_chartHelper.RunChartUpdateVariableNames();
+    m_chartHelper.RunChartUpdateSeries();
 }
 
 void wxEChartsMainFrame::OnWebViewError(wxWebViewEvent&)
 {
     wxLogError(_("Could not initialize the chart."));
     m_webView->SetPage(R"(<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body>)", "");
+}
+
+void wxEChartsMainFrame::OnWebViewScriptResult(wxWebViewEvent& evt)
+{
+    const ChartHelper::ScriptResult result = static_cast<ChartHelper::ScriptResult>(reinterpret_cast<intptr_t>(evt.GetClientData()));
+    const bool isError = evt.IsError();
+
+    wxString failedScript;
+
+    // WebViewEdge does not like staying in the event handler too
+    // long, see https://github.com/wxWidgets/wxWidgets/issues/24843
+    // so we need to use CallAfter()
+    switch ( result )
+    {
+        case ChartHelper::CreateChart:
+            if ( isError )
+                failedScript = _("create the chart");
+            break;
+
+        case ChartHelper::UpdateSeries:
+        case ChartHelper::UpdateVariableNames:
+            if ( isError )
+                failedScript = _("update the chart data");
+            break;
+
+        case ChartHelper::GetColors:
+            if ( isError )
+                failedScript = _("obtain the chart colors");
+            else
+                CallAfter(&wxEChartsMainFrame::ChartChangeColors, evt.GetString());
+            break;
+
+        case ChartHelper::SetColors:
+            if ( isError )
+                failedScript = _("change the chart colors");
+            break;
+
+        case ChartHelper::GetSizingOptions:
+            if ( isError )
+                failedScript = _("obtain the chart sizing options");
+            else
+               //ChartChangeSizingOptions(evt.GetString());
+                CallAfter(&wxEChartsMainFrame::ChartChangeSizingOptions, evt.GetString());
+            break;
+
+        case ChartHelper::SetSizingOptions:
+            if ( isError )
+                failedScript = _("change chart sizing options");
+            break;
+
+        case ChartHelper::GetPNG:
+            if ( isError )
+                failedScript = _("obtain the chart as PNG image");
+            else
+                CallAfter(&wxEChartsMainFrame::ChartSavePNG, evt.GetString());
+            break;
+
+        case ChartHelper::GetEChartsVersion:
+            if ( isError )
+                failedScript = _("obtain the chart version");
+            else
+                CallAfter(&wxEChartsMainFrame::ChartShowVersion, evt.GetString());
+            break;
+    }
+
+    if ( isError )
+        wxLogError(_("Script failed: Could not %s."), failedScript);
+
 }
 
 void wxEChartsMainFrame::OnWebViewMessageReceived(wxWebViewEvent& evt)
@@ -399,15 +436,15 @@ void wxEChartsMainFrame::OnWebViewMessageReceived(wxWebViewEvent& evt)
 
         if ( msgType == "error" )
         {
-            OnScriptChartError(msgFields, msg);
+            OnMessageChartError(msgFields, msg);
         }
         else if ( msgType == "dblclick" )
         {
-            OnScriptChartDoubleClick(msgFields, msg);
+            OnMessageChartDoubleClick(msgFields, msg);
         }
         else if ( msgType == "contextmenu" )
         {
-            OnScriptChartContextMenu();
+            OnMessageChartContextMenu();
         }
         else
         {
@@ -416,7 +453,72 @@ void wxEChartsMainFrame::OnWebViewMessageReceived(wxWebViewEvent& evt)
     }
 }
 
-void wxEChartsMainFrame::OnScriptChartError(const wxArrayString& params, const wxString& msg)
+void wxEChartsMainFrame::ChartChangeColors(const wxString& colorsJSONStr)
+{
+    vector<wxColour> colors;
+
+    if ( !ChartHelper::JSONToColors(colorsJSONStr, colors) )
+        return;
+
+    ChartColorsDlg dlg(this, colors);
+
+    if ( dlg.ShowModal() == wxID_OK )
+        m_chartHelper.RunChartSetColors(dlg.GetColors());
+}
+
+void wxEChartsMainFrame::ChartChangeSizingOptions(const wxString& sizingOptionsJSONStr)
+{
+    double widthToHeightRatio;
+    int minWidth, minHeight;
+
+    if ( !ChartHelper::JSONToSizingOptions(sizingOptionsJSONStr, widthToHeightRatio, minWidth, minHeight) )
+        return;
+
+    ChartSizingOptionsDlg dlg(this, widthToHeightRatio, minWidth, minHeight);
+
+    if ( dlg.ShowModal() == wxID_OK )
+    {
+        dlg.GetSizingOptions(widthToHeightRatio, minWidth, minHeight);
+        m_chartHelper.RunChartSetSizingOptions(widthToHeightRatio, minWidth, minHeight);
+    }
+}
+
+void wxEChartsMainFrame::ChartSavePNG(const wxString& PNGAsBase64Str)
+{
+    wxString base64Str;
+
+    if ( !PNGAsBase64Str.StartsWith("data:image/png;base64,", &base64Str) )
+    {
+        wxLogError(_("Invalid chart data URL."));
+        return;
+    }
+
+    const wxMemoryBuffer data = wxBase64Decode(base64Str);
+
+    if ( data.IsEmpty() )
+    {
+        wxLogError(_("Could not decode the chart data URL."));
+        return;
+    }
+
+    const wxString fileName = wxFileSelector(_("Select file name for chart image"), "", "chart", "",
+                                _("PNG files (*.png)|*.png"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
+
+    if ( fileName.empty() )
+        return;
+
+    wxFFile file(fileName, "wb");
+
+    if ( file.IsOpened() )
+        file.Write(data.GetData(), data.GetDataLen());
+}
+
+void wxEChartsMainFrame::ChartShowVersion(const wxString& version)
+{
+    wxLogMessage(_("Using Apache ECharts v%s."), version);
+}
+
+void wxEChartsMainFrame::OnMessageChartError(const wxArrayString& params, const wxString& msg)
 {
     constexpr size_t validMinParamsCount = 3;
 
@@ -429,7 +531,7 @@ void wxEChartsMainFrame::OnScriptChartError(const wxArrayString& params, const w
     wxLogError(_("JavaScript error %s in %s: %s."), params[0], params[1], params[2]);
 }
 
-void wxEChartsMainFrame::OnScriptChartDoubleClick(const wxArrayString& params, const wxString& msg)
+void wxEChartsMainFrame::OnMessageChartDoubleClick(const wxArrayString& params, const wxString& msg)
 {
     constexpr size_t validMinParamsCount = 2;
 
@@ -474,13 +576,13 @@ void wxEChartsMainFrame::OnScriptChartDoubleClick(const wxArrayString& params, c
 
                 if ( m_chartHelper.SetVariableName(variableIdx, variableName) )
                 {
-                    m_chartHelper.ChartUpdateVariableNames();
+                    m_chartHelper.RunChartUpdateVariableNames();
                     m_grid->SetRowLabelValue(variableIdx, variableName);
                 }
                 if ( m_chartHelper.SetSeriesName(seriesIdx, seriesName) )
                     m_grid->SetColLabelValue(seriesIdx, seriesName);
                  m_chartHelper.SetSeriesType(seriesIdx, static_cast<ChartHelper::SeriesType>(seriesTypeInt));
-                 m_chartHelper.ChartUpdateSeries();
+                 m_chartHelper.RunChartUpdateSeries();
             }
         }
         else
@@ -494,7 +596,7 @@ void wxEChartsMainFrame::OnScriptChartDoubleClick(const wxArrayString& params, c
     }
 }
 
-void wxEChartsMainFrame::OnScriptChartContextMenu()
+void wxEChartsMainFrame::OnMessageChartContextMenu()
 {
     wxLogMessage(_("wxECharts 'contextmenu' message received."));
 }

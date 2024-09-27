@@ -25,7 +25,7 @@ Structured data is exchanged between C++ and JavaScript in the JSON format (usin
 
 #### Communicating with the Chart from C++ Code
 
-This is accomplished using `wxWebView::RunScript()`, where the C++ code asks JavaScript code to either (a) create or modify the chart or (b) query the chart for certain information.
+This is accomplished using `wxWebView::RunScriptAsync()`, where the C++ code asks JavaScript code to either (a) create or modify the chart or (b) query the chart for certain information.
 
 #### Communicating with C++ Code from the Chart
 
@@ -37,7 +37,7 @@ JavaScript charting libraries usually also provide the chart rendered as PNG and
 
 #### Platforms
 
-Tested on Windows (10, 11) and briefly on Linux (Mint 22 Cinnamon). wxECharts does not support the hopelessly outdated Internet Explorer `wxWebView` backend. It also does not support the recently introduced `wxWebViewChromium`, since this backend does not allow obtaining result from `RunScript()` nor adding a script message handler.
+Tested on Windows (10, 11) and briefly on Linux (Mint 22 Cinnamon). wxECharts does not support the hopelessly outdated Internet Explorer `wxWebView` backend. It also does not support the recently introduced `wxWebViewChromium`, since this backend does not allow adding a script message handler.
 See [BUILD.md](BUILD.md) for build instructions.
 
 ### Pros of Using `wxWebView` for Charting
